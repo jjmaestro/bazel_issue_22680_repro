@@ -1,0 +1,86 @@
+module(
+    repo_name = "repro",
+    version = "0.0.0",
+)
+
+## postgres/
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+
+http_archive(
+    name = "postgres_src",
+    url = "https://github.com/postgres/postgres/archive/refs/tags/REL_16_3.tar.gz",
+    sha256 = "dcb3fac1ed875e75bd939aa9636264977e56f35b4429418450309bc646409aff",
+    strip_prefix = "postgres-REL_16_3",
+    build_file = "//postgres:postgres_src.BUILD",
+)
+
+
+bazel_dep(name = "rules_foreign_cc", version = "0.11.1")
+RULES_FOREIGN_CC_HASH = "9d5727d5e51bf1be8423dff7996bdb4d847b47e6"
+git_override(
+    module_name = "rules_foreign_cc",
+    commit = RULES_FOREIGN_CC_HASH,
+    remote = "https://github.com/bazelbuild/rules_foreign_cc",
+)
+
+
+# https://github.com/bazelbuild/rules_python/pull/713
+bazel_dep(name = "rules_python", version = "0.34.0")
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    ignore_root_user_error = True,
+    python_version = "3.11",
+)
+
+bazel_dep(name = "rules_pkg", version = "1.0.1")
+
+
+## testimage/
+bazel_dep(name = "rules_distroless", version = "0.3.3")
+
+# NOTE:
+# Even though rules_distroless PR#50 enabled Bzlmod and it was released in
+# 0.3.4, the release failed for MacOS, so this git_override is needed until
+# a new release / fix is available.
+# See: https://github.com/GoogleContainerTools/rules_distroless/issues/37#issuecomment-2227494145
+RULES_DISTROLESS_0_3_4_RELEASE = "9da4ee521ab077fbd37744cb1acdad9e0f44b349"
+git_override(
+    module_name = "rules_distroless",
+    commit = RULES_DISTROLESS_0_3_4_RELEASE,
+    remote = "https://github.com/GoogleContainerTools/rules_distroless",
+)
+
+bazel_dep(name = "container_structure_test", version = "1.16.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.7.3")
+bazel_dep(name = "rules_oci", version = "1.7.4")
+
+bazel_lib_toolchains = use_extension("@aspect_bazel_lib//lib:extensions.bzl", "toolchains")
+use_repo(bazel_lib_toolchains, "yq_darwin_arm64")
+use_repo(bazel_lib_toolchains, "yq_darwin_amd64")
+use_repo(bazel_lib_toolchains, "yq_linux_amd64")
+use_repo(bazel_lib_toolchains, "yq_linux_arm64")
+use_repo(bazel_lib_toolchains, "yq_linux_ppc64le")
+use_repo(bazel_lib_toolchains, "yq_linux_s390x")
+use_repo(bazel_lib_toolchains, "yq_windows_amd64")
+use_repo(bazel_lib_toolchains, "bsd_tar_toolchains")
+
+
+## repos/
+apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
+
+# debian 11 (bullseye)
+apt.deb_index(
+    name = "debian11",
+    lock = "//repos/debian:debian11.lock.json",
+    manifest = "//repos/debian:debian11.yaml",
+)
+use_repo(apt, "debian11")
+
+# debian 12 (bookworm)
+apt.deb_index(
+    name = "debian12",
+    lock = "//repos/debian:debian12.lock.json",
+    manifest = "//repos/debian:debian12.yaml",
+)
+use_repo(apt, "debian12")
