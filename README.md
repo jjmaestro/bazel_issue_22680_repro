@@ -17,7 +17,7 @@ cd bazel_issue_22680_repro
 make
 ```
 
-The `make` command will run `repro.sh` inside a Docker image with Bazel v7.2.1rc2 and will test:
+The `make` command will run `repro.sh` inside a Docker image with Bazel v7.2.1 (see `.bazelversion`) and will test:
 * running `bazel build` without any options (i.e. cache in the default `$HOME/.cache/bazel` which is *inside* the Docker image)
 ```sh
 bazel build //testimage:tarball

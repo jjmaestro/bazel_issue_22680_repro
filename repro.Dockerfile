@@ -24,5 +24,3 @@ rm -rf /var/lib/apt/lists/*
 EOF
 
 WORKDIR /src/workspace
-
-RUN USE_BAZEL_VERSION=7.2.1rc2 bazel --version
