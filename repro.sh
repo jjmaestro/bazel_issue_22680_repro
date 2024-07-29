@@ -39,8 +39,8 @@ _bazel build //testimage:tarball
 
 
 # Now, running the same bazel build but with output_base on a Docker volume fails:
-_bazel --output_base /tmp/out/bazel build //testimage:tarball
+_bazel --output_user_root /tmp/out/bazel build //testimage:tarball
 
 
 # Finally, try with the experimental_worker_for_repo_fetching flag, which also fails (for me)
-_bazel --output_base /tmp/out/bazel build --experimental_worker_for_repo_fetching=off //testimage:tarball
+_bazel --output_user_root /tmp/out/bazel build --experimental_worker_for_repo_fetching=off //testimage:tarball

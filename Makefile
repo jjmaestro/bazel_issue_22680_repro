@@ -4,10 +4,13 @@ ifndef DOCKER
 $(error Can't find docker)
 endif
 
-OUTDIR := /tmp/bazel_issue_22680_repro
+
+BASEDIR := /tmp/lima
+OUTDIR := $(BASEDIR)/bazel_issue_22680_repro/out
+REPO := $(PWD)
 
 
-all: clean run
+all: run
 
 clean:
 	rm -rf bazel-*
@@ -16,19 +19,19 @@ clean:
 gen-docker-image:
 	docker build -f repro.Dockerfile --tag repro .
 
-run: gen-docker-image
-	rm -rf "$(OUTDIR)" && mkdir "$(OUTDIR)" && \
+run: clean gen-docker-image
+	mkdir -p "$(OUTDIR)" && \
 	docker run \
-		--volume "$(OUTDIR):/tmp/out" \
-		--volume .:/src/workspace \
+		--volume "$(OUTDIR)":/tmp/out:rw \
+		--volume "${REPO}":/src/workspace:rw \
 		--entrypoint=./repro.sh \
 		repro
 
-run-interactive: gen-docker-image
-	rm -rf "$(OUTDIR)" && mkdir "$(OUTDIR)" && \
+run-interactive: clean gen-docker-image
+	mkdir -p "$(OUTDIR)" && \
 	docker run \
-		--volume "$(OUTDIR):/tmp/out" \
-		--volume .:/src/workspace \
+		--volume "$(OUTDIR)":/tmp/out:rw \
+		--volume "${REPO}":/src/workspace:rw \
 		--tty \
 		--interactive \
 		--entrypoint=/bin/bash \
